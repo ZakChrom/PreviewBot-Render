@@ -55,19 +55,25 @@ fn render_grid(grid: Grid, textures: Vec<DynamicImage>) -> Vec<u32> {
 				rotate_ccw(&mut image);
 			}
 		}
+
 		
 		for cy in 0..16 {
 			for cx in 0..16 {
 				let p = image.get_pixel(cx, cy).channels();
-				let r = p[0] as u32;
-				let g = p[1] as u32;
-				let b = p[2] as u32;
+				let mut r = p[0] as u32;
+				let mut g = p[1] as u32;
+				let mut b = p[2] as u32;
 				let a = p[3] as u32;
 				/*let r = image[cy*4*16+cx*4] as u32;
 				let g = image[cy*4*16+cx*4+1] as u32;
 				let b = image[cy*4*16+cx*4+2] as u32;
 				let a = image[cy*4*16+cx*4+3] as u32;*/
-				let pixel = (r<<24)|(g<<16)|(b<<8)|a;
+				if (a == 0) {
+					r = 0x2A;
+					g = 0x2A;
+					b = 0x2A;
+				}
+				let pixel = (r<<24)|(g<<16)|(b<<8)|255;
 				pixels[(py+cy as usize) * width as usize + (px+cx as usize)] = pixel;
 			}
 		}
@@ -116,7 +122,7 @@ fn rotate_ccw(img: &mut image::ImageBuffer<image::Rgba<u8>, Vec<u8>>) {
 	}*/
 }
 
-pub fn render(grid: &mut Grid, ticks: usize) {
+pub fn render(grid: &mut Grid, ticks: usize, output_file: &str) {
 	let mut textures: Vec<DynamicImage> = Vec::new();
 	textures.push(image::open(&Path::new("textures/BGDefault.png")).unwrap());
 	textures.push(image::open(&Path::new("textures/wall.png")).unwrap());
@@ -141,12 +147,14 @@ pub fn render(grid: &mut Grid, ticks: usize) {
 		.arg("-r").arg("5")
 		.arg("-i").arg("-")
 
+
+		/*.arg("-pix_fmt").arg("rgba")
 		.arg("-c:v").arg("libx264")
 		.arg("-vb").arg("2500k")
 		.arg("-c:a").arg("aac")
 		.arg("-ab").arg("200k")
-		.arg("-pix_fmt").arg("yuv420p")
-		.arg("render.mp4")
+		.arg("-pix_fmt").arg("yuv420p")*/
+		.arg(output_file)
 
 		.spawn().expect("Failed to start ffmpeg");
 
