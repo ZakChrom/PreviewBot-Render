@@ -147,13 +147,9 @@ pub fn render(grid: &mut Grid, ticks: usize, output_file: &str) {
 		.arg("-r").arg("5")
 		.arg("-i").arg("-")
 
-
-		/*.arg("-pix_fmt").arg("rgba")
 		.arg("-c:v").arg("libx264")
 		.arg("-vb").arg("2500k")
-		.arg("-c:a").arg("aac")
-		.arg("-ab").arg("200k")
-		.arg("-pix_fmt").arg("yuv420p")*/
+		.arg("-pix_fmt").arg("yuv420p")
 		.arg(output_file)
 
 		.spawn().expect("Failed to start ffmpeg");
