@@ -11,26 +11,7 @@ macro_rules! celld {
         }
     )*} => {
         $( pub const $id_name: CellType = $id; )*
-        pub static CELL_DATA: &[CellData] = &[
-            $(
-                CellData {
-                    id: $id_name,
-                    name: $name,
-                    description: $description,
-                    sides: $sides,
-                    texture_name: $texture_name,
-                },
-            )*
-        ];
     }
-}
-// hotbar structure definition
-macro_rules! hotbar {
-    ($([$($name:ident),*]),* $(,)?) => {
-        pub static HOTBAR_ITEMS: &[&[CellData]] = &[
-            $( &[ $(CELL_DATA[($name - 1) as usize], )* ], )*
-        ];
-    };
 }
 
 celld! {
@@ -89,15 +70,6 @@ celld! {
         texture "enemy"
     }
 }
-
-hotbar![
-    [WALL],
-    [MOVER],
-    [GENERATOR],
-    [ROTATOR_CW, ROTATOR_CCW],
-    [PUSH, SLIDE],
-    [TRASH, ENEMY],
-];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CellData {

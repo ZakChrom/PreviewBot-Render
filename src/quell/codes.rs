@@ -1,101 +1,7 @@
 use base64::{Engine, engine::general_purpose::STANDARD as base64};
-use libdeflater::{Compressor, CompressionLvl, Decompressor};
+use libdeflater::Decompressor;
 
 use super::cells::{Cell, Grid};
-
-pub fn export_q1(grid: &Grid) -> String {
-    let mut result = String::new();
-
-    result.push_str("Q1;");
-    result.push_str(encode_num_62(grid.width).as_str());
-    result.push(';');
-    result.push_str(encode_num_62(grid.height).as_str());
-    result.push(';');
-
-    let mut cell_arr = Vec::new();
-    grid.for_each(|_, _, cell| {
-        if let Some(cell) = cell {
-            cell_arr.push(format!("{}{}", encode_num_62(cell.id()), u8::from(cell.direction())));
-        }
-        else {
-            cell_arr.push(String::new());
-        }
-    });
-
-    let mut cell_grouped = Vec::new();
-    let mut c_iter = cell_arr.into_iter();
-    cell_grouped.push((c_iter.next().unwrap(), 1usize));
-    for c in c_iter {
-        let last = cell_grouped.last_mut().unwrap();
-        if c == last.0 {
-            last.1 += 1;
-        }
-        else {
-            cell_grouped.push((c, 1));
-        }
-    }
-
-    let mut cell_string = String::new();
-    for (i, (c, count)) in cell_grouped.iter().enumerate() {
-        cell_string.push_str(c.as_str());
-        if *count > 1 {
-            cell_string.push('+');
-            cell_string.push_str(encode_num_62(*count).as_str());
-        }
-        if i < cell_grouped.len() - 1 {
-            cell_string.push(';');
-        }
-    }
-
-    result.push_str(&cell_string);
-    result
-}
-
-pub fn export_q2(grid: &Grid) -> String {
-    let mut result = String::new();
-
-    result.push_str("Q2;");
-    result.push_str(encode_num_62(grid.width).as_str());
-    result.push(';');
-    result.push_str(encode_num_62(grid.height).as_str());
-    result.push(';');
-
-    let mut cell_arr = Vec::new();
-    grid.for_each(|_, _, cell| {
-        let val = if let Some(cell) = cell { 1 + 4 * cell.id() as usize + usize::from(cell.direction()) }
-                    else { 0 };
-        cell_arr.push(encode_num_s64(val));
-    });
-
-    let mut cell_grouped = Vec::new();
-    let mut c_iter = cell_arr.into_iter();
-    cell_grouped.push((c_iter.next().unwrap(), 1usize));
-    for c in c_iter {
-        let last = cell_grouped.last_mut().unwrap();
-        if c == last.0 {
-            last.1 += 1;
-        }
-        else {
-            cell_grouped.push((c, 1));
-        }
-    }
-
-    let mut cell_result = Vec::new();
-    for (mut c, count) in cell_grouped {
-        cell_result.append(&mut c);
-        if count > 1 {
-            cell_result.push(0xff);
-            cell_result.append(&mut encode_num_s64(count));
-        }
-    }
-
-    let mut compressor = Compressor::new(CompressionLvl::new(12).unwrap());
-    let mut data = vec![0; compressor.zlib_compress_bound(cell_result.len())];
-    let len = compressor.zlib_compress(&cell_result, &mut data).unwrap();
-
-    result.push_str(&base64.encode(&data[..len]));
-    result
-}
 
 pub fn import(input: &str) -> Result<Grid, &'static str> {
     let mut input = input.trim().split(';');
@@ -284,16 +190,6 @@ fn decode_v3(width: usize, height: usize, cells: &str) -> Result<Grid, &'static 
 
 const NUMBER_KEY_62: &str = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-fn encode_num_62<N: Into<usize>>(num: N) -> String {
-    let mut num = num.into();
-    let mut result = String::new();
-    while num > 0 {
-        result.push(NUMBER_KEY_62.chars().nth(num % 62).unwrap());
-        num /= 62;
-    }
-    result.chars().rev().collect()
-}
-
 fn decode_num_62(chars: impl Iterator<Item = char>) -> usize {
     chars.fold(0, |acc, c| acc * 62 + NUMBER_KEY_62.find(c).unwrap())
 }
@@ -323,20 +219,6 @@ fn read_num_s64(buf: &mut Vec<u8>) -> Option<usize> {
         else if ch == 0xfe { num = num * NUMBER_KEY_S64_SPCHAR_LEN + 4; }
         else { return Some(num * NUMBER_KEY_S64_LEN + NUMBER_KEY_S64.iter().position(|&c| c == ch).unwrap()); }
     }
-}
-
-fn encode_num_s64(num: usize) -> Vec<u8> {
-    let mut changing = num / NUMBER_KEY_S64_LEN;
-    let mut res = Vec::new();
-    while changing > 0 {
-             if changing >= 4 && (changing - 4) % NUMBER_KEY_S64_SPCHAR_LEN == 0 { changing = (changing - 4) / NUMBER_KEY_S64_SPCHAR_LEN; res.push(0xfe); }
-        else if changing >= 3 && (changing - 3) % NUMBER_KEY_S64_SPCHAR_LEN == 0 { changing = (changing - 3) / NUMBER_KEY_S64_SPCHAR_LEN; res.push(0xfd); }
-        else if changing >= 2 && (changing - 2) % NUMBER_KEY_S64_SPCHAR_LEN == 0 { changing = (changing - 2) / NUMBER_KEY_S64_SPCHAR_LEN; res.push(0xfc); }
-        else if changing >= 1 && (changing - 1) % NUMBER_KEY_S64_SPCHAR_LEN == 0 { changing = (changing - 1) / NUMBER_KEY_S64_SPCHAR_LEN; res.push(0xfb); }
-    }
-    let mut res = res.into_iter().rev().collect::<Vec<u8>>();
-    res.push(*NUMBER_KEY_S64.get(num % NUMBER_KEY_S64_LEN).unwrap());
-    res
 }
 
 struct ChIter(Option<char>);

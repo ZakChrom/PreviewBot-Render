@@ -1,9 +1,6 @@
 use std::mem;
 
-use super::{direction::Direction, cell_data::CELL_DATA};
-
-pub const DEFAULT_GRID_WIDTH: usize = 100;
-pub const DEFAULT_GRID_HEIGHT: usize = 100;
+use super::direction::Direction;
 
 pub type CellType = u8;
 
@@ -59,14 +56,6 @@ impl Cell {
     #[inline(always)]
     pub fn set_updated(&mut self, updated: bool) {
         self.0 = (self.0 & 127) | ((updated as u8) << 7);
-    }
-
-    pub fn looks_like(&self, other: &Cell) -> bool {
-        if self.0 & 124 != other.0 & 124 {
-            return false;
-        }
-        let max_rot = CELL_DATA.iter().find(|cd| cd.id == (self.0 & 124) >> 2).unwrap().sides as u8;
-        (self.0 & 3) % max_rot == (other.0 & 3) % max_rot
     }
 }
 
@@ -228,23 +217,6 @@ impl Grid {
                 }
             }
         }
-    }
-
-    pub fn has_same_cells(&self, other: &Grid) -> bool {
-        for y in 0..self.height {
-            for x in 0..self.width {
-                let cell = self.get(x as isize, y as isize);
-                let other_cell = other.get(x as isize, y as isize);
-                match (cell, other_cell) {
-                    (Some(c), Some(oc)) => {
-                        if !c.looks_like(oc) { return false; }
-                    },
-                    (None, None) => {},
-                    _ => return false,
-                }
-            }
-        }
-        true
     }
 }
 
