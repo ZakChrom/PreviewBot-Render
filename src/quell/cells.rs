@@ -78,8 +78,7 @@ pub struct Grid {
     pub width: usize,
     pub height: usize,
     cells: Vec<Option<Cell>>,
-    pub tick_count: u32,
-    pub trashed: u64
+    pub tick_count: u32
 }
 
 impl Grid {
@@ -94,8 +93,7 @@ impl Grid {
             width,
             height,
             cells: Vec::new(),
-            tick_count: 0,
-            trashed: 0
+            tick_count: 0
         }
     }
 
@@ -108,8 +106,7 @@ impl Grid {
             width,
             height,
             cells: Vec::new(),
-            tick_count: 0,
-            trashed: 0
+            tick_count: 0
         };
         g.init();
         g

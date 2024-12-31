@@ -110,12 +110,10 @@ pub fn push(grid: &mut Grid, x: isize, y: isize, dir: Direction, mut force: usiz
             // When trash then break.
             if cell.id() == ENEMY {
                 // Cell is deleted and enemy destroyed.
-                grid.trashed += 1;
                 grid.delete(x, y);
                 break;
             } else if is_trash(cell) {
                 // Cell is trashed.
-                grid.trashed += 1;
                 break;
             }
         }
