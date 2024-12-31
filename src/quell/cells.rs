@@ -1,4 +1,4 @@
-use std::mem;
+use std::{mem, num::{NonZero, NonZeroU8}};
 
 use super::direction::Direction;
 
@@ -19,55 +19,55 @@ static mut DUMMY_CELL: Option<Cell> = None;
 /// - `C`: The cell type.
 /// - `D`: The direction.
 #[derive(Debug)]
-pub struct Cell(u8);
+pub struct Cell(NonZeroU8);
 
 impl Cell {
     /// Creates a new cell.
     #[inline(always)]
     pub fn new(id: CellType, direction: Direction) -> Self {
-        Cell((id << 2) | direction as u8)
+        Cell(NonZero::new((id << 2) | direction as u8).unwrap())
     }
 
     /// Gets the cell type.
     #[inline(always)]
     pub fn id(&self) -> CellType {
-        (self.0 & 124) >> 2
+        (self.0.get() & 124) >> 2
     }
 
     /// Gets the direction.
     #[inline(always)]
     pub fn direction(&self) -> Direction {
-        (self.0 & 3).into()
+        (self.0.get() & 3).into()
     }
 
     /// Sets the direction.
     #[inline(always)]
     pub fn set_direction(&mut self, direction: Direction) {
-        self.0 = (self.0 & 252) | (direction as u8);
+        self.0 = NonZero::new((self.0.get() & 252) | (direction as u8)).unwrap();
     }
 
     /// Gets the updated flag.
     #[inline(always)]
     pub fn updated(&self) -> bool {
-        self.0 & 128 != 0
+        self.0.get() & 128 != 0
     }
 
     /// Sets the updated flag.
     #[inline(always)]
     pub fn set_updated(&mut self, updated: bool) {
-        self.0 = (self.0 & 127) | ((updated as u8) << 7);
+        self.0 = NonZero::new((self.0.get() & 127) | ((updated as u8) << 7)).unwrap();
     }
 }
 
 impl Clone for Cell {
     fn clone(&self) -> Self {
-        Cell(self.0 & 127)
+        Cell(NonZero::new(self.0.get() & 127).unwrap())
     }
 }
 
 impl PartialEq for Cell {
     fn eq(&self, other: &Cell) -> bool {
-        self.0 & 127 == other.0 & 127
+        self.0.get() & 127 == other.0.get() & 127
     }
 }
 impl Eq for Cell {}
@@ -79,11 +79,13 @@ pub struct Grid {
     pub height: usize,
     cells: Vec<Option<Cell>>,
     pub tick_count: u32,
+    pub trashed: u64
 }
 
 impl Grid {
     /// Creates a new uninitialized grid.
     /// You have to call `Grid::init` before using it.
+    #[allow(dead_code)]
     pub const fn new_const(width: usize, height: usize) -> Self {
         assert!(width > 0);
         assert!(height > 0);
@@ -93,6 +95,7 @@ impl Grid {
             height,
             cells: Vec::new(),
             tick_count: 0,
+            trashed: 0
         }
     }
 
@@ -106,6 +109,7 @@ impl Grid {
             height,
             cells: Vec::new(),
             tick_count: 0,
+            trashed: 0
         };
         g.init();
         g
@@ -144,6 +148,7 @@ impl Grid {
     /// Might panic if the coordinate is outside the grid bounds.
     #[doc(hidden)]
     #[inline(always)]
+    #[allow(dead_code)]
     pub fn get_unchecked(&self, x: isize, y: isize) -> &Option<Cell> {
         &self.cells[y as usize * self.width + x as usize]
     }
@@ -156,7 +161,7 @@ impl Grid {
             unsafe { mem::transmute(self.cells.get_unchecked_mut(y as usize * self.width + x as usize)) }
         }
         else {
-            unsafe { &mut DUMMY_CELL }
+            unsafe { &mut *std::ptr::addr_of_mut!(DUMMY_CELL) }
         }
     }
 

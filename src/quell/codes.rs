@@ -220,13 +220,3 @@ fn read_num_s64(buf: &mut Vec<u8>) -> Option<usize> {
         else { return Some(num * NUMBER_KEY_S64_LEN + NUMBER_KEY_S64.iter().position(|&c| c == ch).unwrap()); }
     }
 }
-
-struct ChIter(Option<char>);
-
-impl Iterator for ChIter {
-    type Item = char;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.0.take()
-    }
-}

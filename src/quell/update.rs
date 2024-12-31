@@ -49,6 +49,7 @@ macro_rules! loop_each_dir {
 
 /// Performs a single update step.
 pub fn update(grid: &mut Grid) {
+    grid.trashed = 0;
     let mut cell_flags = 0u64;
 
     for y in 0..grid.height as isize {

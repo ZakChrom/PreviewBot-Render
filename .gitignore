@@ -3,3 +3,11 @@ run.sh
 *.mp4
 ignore/
 ignore/*
+temp
+preview.jpg
+audiotest/
+audiotest/*
+gputest2/
+gputest2/*
+gputest/
+gputest/*

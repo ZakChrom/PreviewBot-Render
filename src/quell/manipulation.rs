@@ -2,6 +2,7 @@ use speedy2d::dimen::Vector2;
 use crate::quell::{direction::Direction, cells::{Cell, Grid}, cell_data::{WALL, SLIDE, MOVER, TRASH, ENEMY}};
 
 /// A force a cell is moved with.
+#[allow(dead_code)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum MoveForce {
     Push,
@@ -70,8 +71,7 @@ pub fn push(grid: &mut Grid, x: isize, y: isize, dir: Direction, mut force: usiz
             let Vector2 { x: ox, y: oy } = dir.to_vector();
             tx += ox;
             ty += oy;
-        }
-        else {
+        } else {
             break;
         }
 
@@ -110,11 +110,12 @@ pub fn push(grid: &mut Grid, x: isize, y: isize, dir: Direction, mut force: usiz
             // When trash then break.
             if cell.id() == ENEMY {
                 // Cell is deleted and enemy destroyed.
+                grid.trashed += 1;
                 grid.delete(x, y);
                 break;
-            }
-            else if is_trash(cell) {
+            } else if is_trash(cell) {
                 // Cell is trashed.
+                grid.trashed += 1;
                 break;
             }
         }
