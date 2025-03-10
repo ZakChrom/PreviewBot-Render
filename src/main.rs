@@ -148,17 +148,17 @@ async fn main() {
 
     let token = env::var("DISCORD_TOKEN").expect("Expected DISCORD_TOKEN in env");
 
-    let now = Instant::now();
+    //let now = Instant::now();
     
-    let mut grid = import(levels::default().get("lorux").unwrap()).unwrap();
-    let times = render(&mut grid, 11, 5, RENDER_OUTPUT, true);
+    //let mut grid = import(levels::default().get("lorux").unwrap()).unwrap();
+    //let times = render(&mut grid, 11, 5, RENDER_OUTPUT, true);
 
-    println!("Time: {}ms\nUpdate min/max/avg: {}μs {}μs {}μs\nRender min/max/avg: {}μs {}μs {}μs\nWrite min/max/avg: {}ms {}ms {}ms",
-        now.elapsed().as_millis(),
-        times.0.iter().min().unwrap(), times.0.iter().max().unwrap(), times.0.iter().sum::<u128>() / times.0.len() as u128,
-        times.1.iter().min().unwrap(), times.1.iter().max().unwrap(), times.1.iter().sum::<u128>() / times.1.len() as u128,
-        times.2.iter().min().unwrap(), times.2.iter().max().unwrap(), times.2.iter().sum::<u128>() / times.2.len() as u128,
-    );
+    //println!("Time: {}ms\nUpdate min/max/avg: {}μs {}μs {}μs\nRender min/max/avg: {}μs {}μs {}μs\nWrite min/max/avg: {}ms {}ms {}ms",
+    //    now.elapsed().as_millis(),
+    //    times.0.iter().min().unwrap(), times.0.iter().max().unwrap(), times.0.iter().sum::<u128>() / times.0.len() as u128,
+    //    times.1.iter().min().unwrap(), times.1.iter().max().unwrap(), times.1.iter().sum::<u128>() / times.1.len() as u128,
+    //    times.2.iter().min().unwrap(), times.2.iter().max().unwrap(), times.2.iter().sum::<u128>() / times.2.len() as u128,
+    //);
 
     let mut client = Client::builder(token, GatewayIntents::empty())
         .activity(ActivityData::competing("fastest preview bot with Cell Machine Simulator"))
