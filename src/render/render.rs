@@ -358,7 +358,7 @@ pub fn preview(grid: &mut Grid, output_file: &str) -> (u128, u128, bool) {
     unsafe {
         pixels.set_len(pixels.len() * 4);
         let img = image::ImageBuffer::<Rgba<u8>, Vec<u8>>::from_raw(width as u32, height as u32, std::mem::transmute::<Vec<u32>, Vec<u8>>(pixels)).unwrap();
-        DynamicImage::ImageRgba8(img).save(output_file).unwrap();
+        DynamicImage::ImageRgba8(img).to_rgb8().save(output_file).unwrap();
     }
     let end2 = now.elapsed().as_millis();
 

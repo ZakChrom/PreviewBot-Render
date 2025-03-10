@@ -67,28 +67,28 @@ impl EventHandler for Handler {
             let size: u64;
             let mut response = CreateInteractionResponseFollowup::new();
 
-            match ticks {
-                0 => {
-                    let times = preview(&mut grid, output);
-                    size = std::fs::metadata(output).unwrap().len();
-                    response = response.content(format!("Time: {}ms\nPreview ({}) {}μs\nSaving {}ms{}",
-                        now.elapsed().as_millis(),
-                        if times.2 { "minimal" } else { "normal" }, times.0,
-                        times.1,
-                        if size < 25000000 { "".to_owned() } else { format!("\n\nPreview is too big. {} bytes", size) }
-                    ));
-                }
-                _ => {
-                    let times = render(&mut grid, ticks, tps, output, gpu);
-                    size = std::fs::metadata(output).unwrap().len();
-                    response = response.content(format!("Time: {}ms\nUpdate min/max/avg: {}μs {}μs {}μs\nRender ({}) min/max/avg: {}μs {}μs {}μs\nWrite min/max/avg: {}ms {}ms {}ms{}",
-                        now.elapsed().as_millis(),
-                        times.0.iter().min().unwrap(), times.0.iter().max().unwrap(), times.0.iter().sum::<u128>() / times.0.len() as u128,
-                        if times.3 { "minimal" } else { "normal" }, times.1.iter().min().unwrap(), times.1.iter().max().unwrap(), times.1.iter().sum::<u128>() / times.1.len() as u128,
-                        times.2.iter().min().unwrap(), times.2.iter().max().unwrap(), times.2.iter().sum::<u128>() / times.2.len() as u128,
-                        if size < 25000000 { "".to_owned() } else { format!("\n\nPreview is too big. {} bytes", size) }
-                    ));
-                }
+            // Preview else render
+            if ticks == 0 {
+                let times = preview(&mut grid, output);
+                let elapsed = now.elapsed().as_millis();
+                size = std::fs::metadata(output).unwrap().len();
+                response = response.content(format!("Time: {}ms\nPreview ({}) {}μs\nSaving {}ms{}",
+                    elapsed,
+                    if times.2 { "minimal" } else { "normal" }, times.0,
+                    times.1,
+                    if size < 25000000 { "".to_string() } else { format!("\n\nPreview is too big. {} bytes", size) }
+                ));
+            } else {
+                let times = render(&mut grid, ticks, tps, output, gpu);
+                let elapsed = now.elapsed().as_millis();
+                size = std::fs::metadata(output).unwrap().len();
+                response = response.content(format!("Time: {}ms\nUpdate min/max/avg: {}μs {}μs {}μs\nRender ({}) min/max/avg: {}μs {}μs {}μs\nWrite min/max/avg: {}ms {}ms {}ms{}",
+                    elapsed,
+                    times.0.iter().min().unwrap(), times.0.iter().max().unwrap(), times.0.iter().sum::<u128>() / times.0.len() as u128,
+                    if times.3 { "minimal" } else { "normal" }, times.1.iter().min().unwrap(), times.1.iter().max().unwrap(), times.1.iter().sum::<u128>() / times.1.len() as u128,
+                    times.2.iter().min().unwrap(), times.2.iter().max().unwrap(), times.2.iter().sum::<u128>() / times.2.len() as u128,
+                    if size < 25000000 { "".to_string() } else { format!("\n\nPreview is too big. {} bytes", size) }
+                ));
             }
 
             if size < 25000000 {
@@ -123,7 +123,7 @@ impl EventHandler for Handler {
         let render_command = CreateCommand::new("preview")
             .description("Preview a level (V3 only)")
             .add_option(CreateCommandOption::new(CommandOptionType::String, "level", "The level code").required(true))
-            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "ticks", "How many ticks to render").required(false).min_int_value(1).max_int_value(10000))
+            .add_option(CreateCommandOption::new(CommandOptionType::Integer, "ticks", "How many ticks to render").required(false).min_int_value(1).max_int_value(2_u64.pow(32)))
             .add_option(CreateCommandOption::new(CommandOptionType::Integer, "tps", "Ticks per second the render should play as").min_int_value(1).max_int_value(1000))
             .add_option(CreateCommandOption::new(CommandOptionType::Boolean, "gpu", "Use gpu for rendering (experimental)"));
         
